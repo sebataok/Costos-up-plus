@@ -197,7 +197,7 @@
 <footer>Plus SPA · Sistema de Precios · v2.0</footer>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxA7rieCID8G_yatYGRr4iw_rVJdm6D26IJsekQ56FXBd1kE3MlDDk7AGqO7GYy2d2Q/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxYGdEZ_r5R9LP8rs4E7Ib5M9YiQniGJ-0og7Z9sR7P1dbayQjqlyPHoe5y4ythS4Lu/exec";
 
 let provSeleccionado = null;
 let archivoFoto = null;
@@ -279,17 +279,26 @@ function toBase64(file) {
   });
 }
 
+function formatCLP(val) {
+  return '$ ' + Math.round(Number(val)).toLocaleString('es-CL');
+}
+
 function mostrarResultado(data) {
   const div = document.getElementById('resultado');
   const tabla = document.getElementById('tabla-resultado');
   div.style.display = 'block';
   let filas = '';
   if (data.productos && data.productos.length > 0) {
-    filas += `<tr><td>Proveedor</td><td>${provSeleccionado}</td></tr>`;
-    filas += `<tr><td>Factura N°</td><td>${data.numero_factura || '—'}</td></tr>`;
-    filas += `<tr><td>Fecha</td><td>${data.fecha || '—'}</td></tr>`;
-    data.productos.forEach(p => {
-      filas += `<tr><td>${p.nombre}</td><td class="precio-destacado">$${Number(p.precio_unitario).toLocaleString('es-CL')}</td></tr>`;
+    filas += `<tr><td>📅 Fecha de Compra</td><td>${data.fecha || '—'}</td></tr>`;
+    filas += `<tr><td>🏢 Proveedor</td><td>${provSeleccionado}</td></tr>`;
+    filas += `<tr><td>🧾 N° Factura</td><td>${data.numero_factura || '—'}</td></tr>`;
+    filas += `<tr><td colspan="2" style="background:#f0f4f8;font-weight:700;color:#1a3a5c;font-size:12px;text-transform:uppercase;letter-spacing:1px;padding:10px 20px;">📦 Productos</td></tr>`;
+    data.productos.forEach((p, i) => {
+      filas += `<tr><td colspan="2" style="background:#f8fbfe;padding:4px 20px;font-size:11px;color:#b0bec5;font-weight:600;text-transform:uppercase;">Producto ${i+1}</td></tr>`;
+      filas += `<tr><td>Nombre</td><td style="font-size:12px;">${p.nombre}</td></tr>`;
+      filas += `<tr><td>Código</td><td>${p.codigo || '—'}</td></tr>`;
+      filas += `<tr><td>Cantidad</td><td>${p.cantidad_packs || '—'} pack(s) × ${p.unidades_por_pack || '—'} unidades</td></tr>`;
+      filas += `<tr><td>💰 Precio Unit. Real</td><td class="precio-destacado">${formatCLP(p.precio_unitario)}</td></tr>`;
     });
   } else {
     filas = `<tr><td>Estado</td><td>✅ Procesada</td></tr>`;
