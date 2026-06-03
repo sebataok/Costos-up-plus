@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Plus SPA — Captura de Facturas</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --azul:     #1a3a5c;
+    --azul-med: #2E75B6;
+    --azul-cl:  #deeaf1;
+    --verde:    #00b050;
+    --rojo:     #e53935;
+    --gris:     #f4f6f9;
+    --gris-med: #b0bec5;
+    --blanco:   #ffffff;
+    --texto:    #1a2733;
+    --sombra:   0 4px 24px rgba(26,58,92,0.10);
+    --radio:    18px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--gris);
+    color: var(--texto);
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--azul);
+    padding: 28px 24px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -30px; left: -10%; right: -10%;
+    height: 60px;
+    background: var(--gris);
+    border-radius: 50%;
+  }
+  .logo-row { display: flex; align-items: center; gap: 12px; }
+  .logo-icon {
+    width: 44px; height: 44px;
+    background: var(--azul-med);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .logo-text h1 {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .logo-text p {
+    color: rgba(255,255,255,0.55);
+    font-size: 12px;
+    font-weight: 400;
+    margin-top: 2px;
+  }
+
+  /* ── MAIN ── */
+  main { padding: 48px 20px 0; max-width: 480px; margin: 0 auto; }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--blanco);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra);
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--azul-med);
+    margin-bottom: 16px;
+  }
+
+  /* ── SELECT PROVEEDOR ── */
+  .prov-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .prov-btn {
+    border: 2px solid #e0e8f0;
+    border-radius: 12px;
+    padding: 14px 10px;
+    background: var(--blanco);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.18s ease;
+    display: flex; flex-direction: column;
+    align-items: center; gap: 6px;
+  }
+  .prov-btn:active { transform: scale(0.97); }
+  .prov-btn .prov-icon { font-size: 22px; }
+  .prov-btn .prov-name {
+    font-size: 12px; font-weight: 600;
+    color: var(--texto); line-height: 1.2;
+  }
+  .prov-btn.selected {
+    border-color: var(--azul-med);
+    background: var(--azul-cl);
+  }
+  .prov-btn.selected .prov-name { color: var(--azul); }
+
+  /* ── FOTO ── */
+  #zona-foto {
+    border: 2.5px dashed #c5d8ea;
+    border-radius: 14px;
+    min-height: 180px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+    overflow: hidden;
+    background: #f8fbfe;
+  }
+  #zona-foto:active { background: var(--azul-cl); border-color: var(--azul-med); }
+  #zona-foto.tiene-foto { border-style: solid; border-color: var(--verde); }
+  #zona-foto img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    position: absolute; inset: 0;
+    border-radius: 12px;
+  }
+  #zona-foto .overlay-foto {
+    position: absolute; inset: 0;
+    background: rgba(0,176,80,0.18);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .zona-placeholder { text-align: center; z-index: 1; }
+  .zona-placeholder .cam-icon { font-size: 40px; margin-bottom: 4px; }
+  .zona-placeholder p {
+    font-size: 14px; font-weight: 500;
+    color: var(--azul-med);
+  }
+  .zona-placeholder small {
+    font-size: 11px; color: var(--gris-med);
+  }
+  input[type=file] { display: none; }
+
+  /* ── ESTADO ── */
+  #estado {
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  #estado.info    { background: #e8f4fd; color: var(--azul);    display: flex; }
+  #estado.exito   { background: #e8f7ee; color: var(--verde);   display: flex; }
+  #estado.error   { background: #fdecea; color: var(--rojo);    display: flex; }
+  #estado.cargando{ background: #e8f4fd; color: var(--azul-med);display: flex; }
+  .spin {
+    width: 18px; height: 18px;
+    border: 2.5px solid rgba(46,117,182,0.25);
+    border-top-color: var(--azul-med);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── RESULTADO ── */
+  #resultado {
+    display: none;
+    background: var(--blanco);
+    border-radius: var(--radio);
+    box-shadow: var(--sombra);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .res-header {
+    background: var(--azul);
+    padding: 14px 20px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .res-tabla { width: 100%; border-collapse: collapse; }
+  .res-tabla tr:not(:last-child) td { border-bottom: 1px solid #f0f4f8; }
+  .res-tabla td {
+    padding: 12px 20px;
+    font-size: 13px;
+  }
+  .res-tabla td:first-child { color: var(--gris-med); font-weight: 500; width: 45%; }
+  .res-tabla td:last-child  { color: var(--texto); font-weight: 600; font-family: 'DM Mono', monospace; }
+  .precio-destacado { color: var(--azul) !important; font-size: 15px !important; }
+
+  /* ── BOTÓN ENVIAR ── */
+  #btn-enviar {
+    width: 100%;
+    background: var(--azul);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    padding: 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.18s, transform 0.1s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    letter-spacing: 0.2px;
+  }
+  #btn-enviar:active { transform: scale(0.98); background: #0f2a45; }
+  #btn-enviar:disabled { background: var(--gris-med); cursor: not-allowed; }
+
+  /* ── BTN NUEVA ── */
+  #btn-nueva {
+    width: 100%;
+    background: transparent;
+    color: var(--azul-med);
+    border: 2px solid var(--azul-med);
+    border-radius: 14px;
+    padding: 15px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: none;
+    margin-top: 10px;
+    transition: background 0.18s;
+  }
+  #btn-nueva:active { background: var(--azul-cl); }
+
+  /* ── HISTORIAL ── */
+  #historial { display: none; }
+  .hist-item {
+    display: flex; align-items: center;
+    padding: 12px 0;
+    gap: 12px;
+  }
+  .hist-item:not(:last-child) { border-bottom: 1px solid #f0f4f8; }
+  .hist-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--verde);
+    flex-shrink: 0;
+  }
+  .hist-info { flex: 1; }
+  .hist-nombre { font-size: 13px; font-weight: 600; }
+  .hist-meta   { font-size: 11px; color: var(--gris-med); margin-top: 2px; }
+  .hist-precio { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 600; color: var(--azul); }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 30px 20px 10px;
+    font-size: 11px;
+    color: var(--gris-med);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-row">
+    <div class="logo-icon">📋</div>
+    <div class="logo-text">
+      <h1>Plus SPA</h1>
+      <p>Captura de Facturas</p>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- PASO 1: PROVEEDOR -->
+  <div class="card">
+    <div class="card-title">1 · Selecciona el Proveedor</div>
+    <div class="prov-grid">
+      <button class="prov-btn" data-prov="Embonor" onclick="selProv(this)">
+        <span class="prov-icon">🥤</span>
+        <span class="prov-name">Coca Cola Embonor</span>
+      </button>
+      <button class="prov-btn" data-prov="DESA" onclick="selProv(this)">
+        <span class="prov-icon">🍷</span>
+        <span class="prov-name">DESA</span>
+      </button>
+      <button class="prov-btn" data-prov="CCU" onclick="selProv(this)">
+        <span class="prov-icon">🍺</span>
+        <span class="prov-name">Comercial CCU</span>
+      </button>
+      <button class="prov-btn" data-prov="Otro" onclick="selProv(this)">
+        <span class="prov-icon">📦</span>
+        <span class="prov-name">Otro Proveedor</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- PASO 2: FOTO -->
+  <div class="card">
+    <div class="card-title">2 · Fotografía la Factura</div>
+    <div id="zona-foto" onclick="document.getElementById('input-foto').click()">
+      <div class="zona-placeholder">
+        <div class="cam-icon">📸</div>
+        <p>Toca para abrir cámara o galería</p>
+        <small>Se acepta JPG, PNG o HEIC</small>
+      </div>
+    </div>
+    <input type="file" id="input-foto" accept="image/*" capture="environment" onchange="previsualizarFoto(this)">
+  </div>
+
+  <!-- ESTADO -->
+  <div id="estado"></div>
+
+  <!-- RESULTADO -->
+  <div id="resultado">
+    <div class="res-header">📊 Datos Extraídos</div>
+    <table class="res-tabla" id="tabla-resultado"></table>
+  </div>
+
+  <!-- BOTÓN ENVIAR -->
+  <button id="btn-enviar" onclick="enviarFactura()" disabled>
+    <span>📤</span> Procesar y Guardar en Google Sheets
+  </button>
+
+  <!-- BOTÓN NUEVA -->
+  <button id="btn-nueva" onclick="resetear()">+ Nueva Factura</button>
+
+  <!-- HISTORIAL -->
+  <div id="historial">
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">✅ Enviadas hoy</div>
+      <div id="lista-historial"></div>
+    </div>
+  </div>
+
+</main>
+
+<footer>Plus SPA · Sistema de Precios · v1.0</footer>
+
+<script>
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzewt-ydV_3rBoJ1BNRWKwrYCHRSidJLOIrlJDYtALekNHmKoMjLZx7OLAsqdTshWyh/exec";
+
+let provSeleccionado = null;
+let archivoFoto = null;
+let historial = [];
+
+function selProv(btn) {
+  document.querySelectorAll('.prov-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  provSeleccionado = btn.dataset.prov;
+  verificarListo();
+}
+
+function previsualizarFoto(input) {
+  if (!input.files || !input.files[0]) return;
+  archivoFoto = input.files[0];
+  const zona = document.getElementById('zona-foto');
+  const reader = new FileReader();
+  reader.onload = e => {
+    zona.innerHTML = `
+      <img src="${e.target.result}" alt="Factura">
+      <div class="overlay-foto"><span style="font-size:36px">✅</span></div>
+    `;
+    zona.classList.add('tiene-foto');
+  };
+  reader.readAsDataURL(archivoFoto);
+  verificarListo();
+}
+
+function verificarListo() {
+  const btn = document.getElementById('btn-enviar');
+  btn.disabled = !(provSeleccionado && archivoFoto);
+}
+
+function mostrarEstado(tipo, icono, msg) {
+  const el = document.getElementById('estado');
+  el.className = tipo;
+  if (tipo === 'cargando') {
+    el.innerHTML = `<div class="spin"></div><span>${msg}</span>`;
+  } else {
+    el.innerHTML = `<span>${icono}</span><span>${msg}</span>`;
+  }
+}
+
+async function enviarFactura() {
+  if (!provSeleccionado || !archivoFoto) return;
+
+  const btn = document.getElementById('btn-enviar');
+  btn.disabled = true;
+  document.getElementById('resultado').style.display = 'none';
+
+  mostrarEstado('cargando', '', 'Analizando factura con IA...');
+
+  try {
+    // Convertir imagen a base64
+    const base64 = await toBase64(archivoFoto);
+
+    // Enviar al Apps Script
+    const formData = new FormData();
+    formData.append('proveedor', provSeleccionado);
+    formData.append('imagen', base64);
+    formData.append('nombreArchivo', archivoFoto.name);
+
+    const resp = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await resp.json();
+
+    if (data.error) {
+      mostrarEstado('error', '❌', 'Error: ' + data.error);
+      btn.disabled = false;
+      return;
+    }
+
+    // Mostrar resultado
+    mostrarResultado(data);
+    mostrarEstado('exito', '✅', '¡Guardado correctamente en Google Sheets!');
+    document.getElementById('btn-nueva').style.display = 'block';
+    btn.style.display = 'none';
+
+    // Agregar al historial
+    agregarHistorial(data);
+
+  } catch (err) {
+    mostrarEstado('error', '❌', 'Error de conexión. Intenta nuevamente.');
+    btn.disabled = false;
+    console.error(err);
+  }
+}
+
+function toBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+function mostrarResultado(data) {
+  const div = document.getElementById('resultado');
+  const tabla = document.getElementById('tabla-resultado');
+  div.style.display = 'block';
+
+  let filas = '';
+  if (data.productos && data.productos.length > 0) {
+    data.productos.forEach(p => {
+      filas += `
+        <tr>
+          <td>${p.nombre}</td>
+          <td class="precio-destacado">$${Number(p.precioUnitario).toLocaleString('es-CL')}</td>
+        </tr>`;
+    });
+  } else {
+    filas = `
+      <tr><td>Proveedor</td><td>${data.proveedor || provSeleccionado}</td></tr>
+      <tr><td>Factura N°</td><td>${data.factura || '—'}</td></tr>
+      <tr><td>Fecha</td><td>${data.fecha || new Date().toLocaleDateString('es-CL')}</td></tr>
+      <tr><td>Estado</td><td>✅ Procesada</td></tr>`;
+  }
+  tabla.innerHTML = filas;
+}
+
+function agregarHistorial(data) {
+  historial.push({ proveedor: provSeleccionado, data, hora: new Date() });
+  const lista = document.getElementById('lista-historial');
+  const item = document.createElement('div');
+  item.className = 'hist-item';
+  item.innerHTML = `
+    <div class="hist-dot"></div>
+    <div class="hist-info">
+      <div class="hist-nombre">${provSeleccionado}</div>
+      <div class="hist-meta">${new Date().toLocaleTimeString('es-CL', {hour:'2-digit',minute:'2-digit'})}</div>
+    </div>
+    <div class="hist-precio">✅ Guardada</div>
+  `;
+  lista.prepend(item);
+  document.getElementById('historial').style.display = 'block';
+}
+
+function resetear() {
+  provSeleccionado = null;
+  archivoFoto = null;
+  document.querySelectorAll('.prov-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('zona-foto').classList.remove('tiene-foto');
+  document.getElementById('zona-foto').innerHTML = `
+    <div class="zona-placeholder">
+      <div class="cam-icon">📸</div>
+      <p>Toca para abrir cámara o galería</p>
+      <small>Se acepta JPG, PNG o HEIC</small>
+    </div>`;
+  document.getElementById('input-foto').value = '';
+  document.getElementById('estado').className = '';
+  document.getElementById('estado').innerHTML = '';
+  document.getElementById('resultado').style.display = 'none';
+  document.getElementById('btn-enviar').style.display = 'flex';
+  document.getElementById('btn-enviar').disabled = true;
+  document.getElementById('btn-nueva').style.display = 'none';
+}
+</script>
+</body>
+</html>
